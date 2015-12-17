@@ -1,0 +1,5 @@
+*.ko
+*.o.cmd
+*.tmp_versions
+*.ko.cmd
+*scp.sh
