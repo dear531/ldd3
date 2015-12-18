@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-	obj-m	:=hello_world.o
+	obj-m	:=hello_world.o scull.o
 else
 	PWD	:=$(shell pwd)
 	KVER	:=$(shell uname -r)
@@ -7,5 +7,5 @@ else
 default:
 	$(MAKE) -C $(KDIR) M=$(PWD)
 clean:
-	-rm -rf *.o *.ko *.mod.c modules.order Module.symvers
+	-rm -rf *.o *.ko *.mod.c modules.order Module.symvers .*.cmd
 endif
