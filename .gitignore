@@ -3,3 +3,8 @@
 *.tmp_versions
 *.ko.cmd
 *scp.sh
+*.mod.*
+*.o
+*a.out
+*symvers
+*modules.order

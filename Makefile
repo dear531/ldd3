@@ -7,5 +7,6 @@ else
 default:
 	$(MAKE) -C $(KDIR) M=$(PWD)
 clean:
-	-rm -rf *.o *.ko *.mod.c modules.order Module.symvers .*.cmd
+	-rm -rf *.o *.ko *.mod.c modules.order\
+		Module.symvers .*.cmd .tmp_versions
 endif
