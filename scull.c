@@ -7,6 +7,7 @@
 #include <linux/slab.h>
 #include <linux/cdev.h>
 #include <asm/uaccess.h>
+#include <linux/proc_fs.h>
 
 #define DEVS_NR	2
 #ifndef BUFSIZ
@@ -68,7 +69,6 @@ flaid1:
 
 int scull_release(struct inode *inode, struct file *filp)
 {
-	/* FIXME */
 	return 0;
 }
 
@@ -103,7 +103,6 @@ copy_to_user(void __user *to, const void *from, unsigned long n)
 		ret = count;
 	}
 #endif
-	/* FIXME */
 
 	return ret;
 }
@@ -130,7 +129,6 @@ copy_from_user(void *to, const void __user *from, unsigned long n)
 	}
 	ret = count;
 	*ppos += count;
-	/* FIXME */
 flaid1:
 	return ret;
 }
@@ -165,6 +163,18 @@ struct file_operations scull_ops = {
 	.write		= scull_write,
 	.llseek		= scull_llseek,
 };
+#if 0
+typedef	int (read_proc_t)(char *page, char **start, off_t off,
+			  int count, int *eof, void *data);
+#endif
+static int scull_read_proc(char *page, char **start, off_t off,
+			  int count, int *eof, void *data)
+{
+	int len = 0;
+	len += sprintf(page + len, "scull_major :%d, scull_minor :%d\n",
+			scull_major, scull_minor);
+	return len;
+}
 static __init int dev_number_init(void)
 {
 	dev_t dev;
@@ -222,6 +232,12 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
 	mem_devp[0].data[0] = '0';
 	mem_devp[0].data[1] = '1';
 #endif
+#if 0
+static inline struct proc_dir_entry *create_proc_read_entry(const char *name,
+	mode_t mode, struct proc_dir_entry *base, 
+	read_proc_t *read_proc, void * data)
+#endif
+	create_proc_read_entry("scull_mem", 0, NULL, scull_read_proc, NULL);
 
 	return 0;
 flaid3:
@@ -243,6 +259,10 @@ static __exit void dev_number_exit(void)
 {
 	dev_t dev;
 	int i;
+#if 0
+void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
+#endif
+	remove_proc_entry("scull_mem", NULL);
 	for (i = 0; i < DEVS_NR; i++) {
 		if (mem_devp[i].data) {
 			kfree(mem_devp[i].data);
