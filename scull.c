@@ -19,6 +19,7 @@ struct mem_devp {
 	char *data;
 	int size;
 } *mem_devp;
+static int writebuff = 1;
 #if 0
 struct cdev {
 	struct kobject kobj;
@@ -173,6 +174,43 @@ static int scull_read_proc(char *page, char **start, off_t off,
 	int len = 0;
 	len += sprintf(page + len, "scull_major :%d, scull_minor :%d\n",
 			scull_major, scull_minor);
+	len += sprintf(page + len, "writebuff :%d\n", writebuff);
+	*eof = 1;
+	return len;
+}
+#if 0
+typedef	int (write_proc_t)(struct file *file, const char __user *buffer,
+			   unsigned long count, void *data);
+#endif
+int scull_write_proc(struct file *file, const char __user *buffer,
+			   unsigned long count, void *data)
+{
+	char tmpbuff[10];
+	char *endp;
+	int len = count > sizeof(tmpbuff) / sizeof(*tmpbuff) - 1
+		? sizeof(tmpbuff) / sizeof(*tmpbuff) - 1 : count;
+#if 0
+unsigned long
+copy_from_user(void *to, const void __user *from, unsigned long n)
+#endif
+	memset(tmpbuff, 0x00, sizeof(tmpbuff) / sizeof(*tmpbuff));
+	if (copy_from_user(tmpbuff, buffer, len)) {
+		printk(KERN_INFO "copy_from_user error\n");
+		return -EFAULT;
+	}
+#if 0
+long simple_strtol(const char *cp,char **endp,unsigned int base)
+#endif
+#if DMESG_DEBUG
+	printk(KERN_INFO "tmpbuff :%s\n", tmpbuff);
+#endif
+	if (tmpbuff[0] == '\n')
+		return 1;
+	if (tmpbuff[0] < '0' || tmpbuff[0] > '9')
+		return -EINVAL;
+	writebuff = simple_strtol(tmpbuff, &endp, 10);
+	memset(tmpbuff, 0x00, sizeof(tmpbuff) / sizeof(*tmpbuff));
+	len = endp - tmpbuff;
 	return len;
 }
 static __init int dev_number_init(void)
@@ -180,6 +218,7 @@ static __init int dev_number_init(void)
 	dev_t dev;
 	int ret;
 	int i, tmp;
+	struct proc_dir_entry *proc_scull_entry;
 	if (scull_major) {
 		dev = MKDEV(scull_major, scull_minor);
 		ret = register_chrdev_region(dev, DEVS_NR, "scull");
@@ -233,11 +272,20 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
 	mem_devp[0].data[1] = '1';
 #endif
 #if 0
-static inline struct proc_dir_entry *create_proc_read_entry(const char *name,
-	mode_t mode, struct proc_dir_entry *base, 
-	read_proc_t *read_proc, void * data)
+struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
+					 struct proc_dir_entry *parent)
+struct proc_dir_entry {
+	read_proc_t *read_proc;
+	write_proc_t *write_proc;
+};
 #endif
-	create_proc_read_entry("scull_mem", 0, NULL, scull_read_proc, NULL);
+	proc_scull_entry = create_proc_entry("scull_mem", 0, NULL);
+	if (NULL == proc_scull_entry) {
+		printk(KERN_INFO "create_proc_entry flaid\n");
+	} else {
+		proc_scull_entry->read_proc	= scull_read_proc;
+		proc_scull_entry->write_proc	= scull_write_proc;
+	}
 
 	return 0;
 flaid3:
