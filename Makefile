@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-	obj-m	:=hello_world.o scull.o
+	obj-m	:=hello_world.o scull.o scullm.o
 else
 	PWD	:=$(shell pwd)
 	KVER	:=$(shell uname -r)
