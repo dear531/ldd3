@@ -9,3 +9,4 @@
 *symvers
 *modules.order
 *.*swp
+.fuse_hidden*
