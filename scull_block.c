@@ -89,10 +89,17 @@ static int wait_write(struct scull_dev *dev, struct file *filp)
 		up(&dev->wsem);
 		if (filp->f_flags & O_NONBLOCK)
 			return -EAGAIN;
+#if 0
+		/* first way for sleep : prepare_to_wait + finish_wait */
 		prepare_to_wait(&dev->outq, &wait, TASK_INTERRUPTIBLE);
 		if ((dev->wp + 1) % BUFSIZ == dev->rp)
 			schedule();
 		finish_wait(&dev->outq, &wait);
+#else
+		/* second way for sleep : wait_event_interruptible */
+		if (wait_event_interruptible(dev->outq, ((dev->wp + 1) % BUFSIZ == dev->rp)))
+			return -ERESTARTSYS;
+#endif
 		if (signal_pending(current)) {
 #if 1
 			printk(KERN_INFO "singal operation\n");
