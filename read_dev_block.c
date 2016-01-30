@@ -8,12 +8,30 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
 
 
 #define SCULL_FILE	"/dev/scullb0"
+typedef void (*sighandler_t)(int);
+void sig_int(int signum)
+{
+	int i;
+	if (SIGINT == signum) {
+		for (i = 0; i < 10; i++) {
+			write(STDOUT_FILENO, ".", sizeof(".") - 1);
+			sleep(1);
+		}
+	}
+}
 
 int main(void)
 {
+	sighandler_t sig_tmp;
+	if (SIG_ERR == (sig_tmp = signal(SIGINT, sig_int))) {
+		fprintf(stderr, "set signal SIGINT is error :%s\n",
+				strerror(errno));
+	}
 	int fd = -1;
 	fd = open(SCULL_FILE, O_RDWR);
 	int opt = 0;
@@ -53,6 +71,9 @@ again:
 	if (0 > fd) {
 		close(fd);
 		fd = -1;
+	}
+	if (SIG_ERR != sig_tmp) {
+		signal(SIGINT, sig_tmp);
 	}
 	return 0;
 }

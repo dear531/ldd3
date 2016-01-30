@@ -93,8 +93,12 @@ static int wait_write(struct scull_dev *dev, struct file *filp)
 		if ((dev->wp + 1) % BUFSIZ == dev->rp)
 			schedule();
 		finish_wait(&dev->outq, &wait);
-		if (signal_pending(current))
+		if (signal_pending(current)) {
+#if 1
+			printk(KERN_INFO "singal operation\n");
+#endif
 			return -ERESTARTSYS;
+		}
 		if (down_interruptible(&dev->wsem))
 			return -ERESTARTSYS;
 	}
